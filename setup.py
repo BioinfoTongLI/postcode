@@ -8,4 +8,5 @@ setup(
     packages=find_packages(where='source-code'),
     package_dir={'': 'source-code'},
     py_modules=[splitext(basename(path))[0] for path in glob('source-code/*.py')],
+    entry_points={"console_scripts": ["postcode=postcode.postcode:main"]},
 )

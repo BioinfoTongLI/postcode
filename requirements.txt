@@ -7,3 +7,4 @@ pandas==2.0.3
 starfish==0.2.2
 scikit-image==0.15.0
 fire==0.5.0
+openpyxl==3.0.7

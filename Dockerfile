@@ -4,6 +4,4 @@ RUN apt-get -y update && apt-get -y install --no-install-recommends procps pytho
 
 COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install -r /tmp/requirements.txt --no-cache-dir
-
-RUN pip install git+https://github.com/BioinfoTongLI/two_step_py.git@main
+RUN pip install -r /tmp/requirements.txt --no-cache-dir && pip install git+https://github.com/BioinfoTongLI/postcode.git@master --no-cache-dir

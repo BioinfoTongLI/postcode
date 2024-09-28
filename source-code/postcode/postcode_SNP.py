@@ -6,8 +6,10 @@ import pandas as pd
 import fire
 from pathlib import Path
 from avg_spot_profile import main as average_spot_profiles
+from max_proj_spot_profile import main as max_proj_spot_profiles
 from decoding_functions import decoding_function, decoding_output_to_dataframe
-
+from prepare_ISS import main as prepare_iss
+'''
 def ReadPrepCodebook(codebook_path):
     #I consider single channel!
     codebook_in = pd.read_csv(codebook_path)
@@ -19,27 +21,30 @@ def ReadPrepCodebook(codebook_path):
             codebook_3d[ng, 0, nr] = int(str(codes[ng])[nr])
     gene_list_obj = np.array(codebook_in['gene'], dtype = object)
     return gene_list_obj, codebook_3d, n_genes
-
-def ReadPrepCodebook2(codebook_path, N_readouts):
+'''
+def prepare_codebook_MERFISH(codebook_path, N_readouts, gene_name = 'gene', readout_name = 'Readout_'):
     codebook_in = pd.read_csv(codebook_path)
     n_genes = codebook_in.shape[0]; n_rounds = N_readouts;
     codebook_3d = np.zeros((n_genes, 1, n_rounds), dtype =  'uint8')
     for ng in range(n_genes):
         for nr in range(n_rounds):
-            column_name = 'Readout_' + str(nr+1)
+            column_name =  readout_name + str(nr+1)
             codebook_3d[ng, 0, nr] = int(codebook_in[column_name][ng])
-    gene_list_obj = np.array(codebook_in['gene'], dtype = object)
+    gene_list_obj = np.array(codebook_in[gene_name], dtype = object)
     return gene_list_obj, codebook_3d, n_genes
 
-def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, readouts_csv: str, keep_noises=True, min_prob = 0.95) -> pd.DataFrame:
+
+                             
+def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, img_p = 'None', readouts_csv = 'None', mode = 'ISS', start_cycle = 2, keep_noises=True, min_prob = 0.9) -> pd.DataFrame:
     """
     Decodes spots using the Postcode algorithm.
 
     Args:
         spot_locations_p (str): A file path to pandas DataFrame containing the spot locations.
         spot_profile_p (str): A file path to numpy array containing the spot profiles (N x C x R).
-        codebook (str): Cortana-like codebook with only one channel and number of rounds (readouts)
-        readouts_csv (str): csv file with table which describes link between cycle-channels and readouts
+        codebook (str): csv Cortana-like codebook with only one channel and number of rounds (readouts) (for MERFISH mode)
+        codebook (str): csv Codebook with only one channel and number of rounds (readouts) (for MERFISH mode)
+        readouts_csv (str): csv file with table which describes link between cycle-channels and readouts (only for MERFISH mode)
         keep_noises (bool, optional): Whether to keep spots that were classified as 'background' or 'infeasible'.
         min_prob: [0,1] - value of minimum allowed probability of decoded spot
             Defaults to True.
@@ -51,10 +56,16 @@ def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, readouts
     spot_locations = pd.read_csv(spot_locations_p)
     #spot_profile_raw = np.load(spot_profile_p, allow_pickle=True)
     #spot_profile = max_proj_spot_profiles(spot_profile_p, readouts_csv)
-    spot_profile, N_readouts = average_spot_profiles(spot_profile_p, readouts_csv)
-
     
-    gene_list, codebook_arr, K = ReadPrepCodebook2(codebook_p, N_readouts)
+
+    if mode == 'MERFISH':
+        spot_profile, N_readouts = average_spot_profiles(spot_profile_p, readouts_csv)
+        gene_list, codebook_arr, K = prepare_codebook_MERFISH(codebook_p, N_readouts)
+    elif mode =='ISS':
+        codebook_arr, spot_profile, gene_list, K = prepare_iss(codebook_p, spot_profile_p, image_path = img_p, start_cycle = start_cycle)
+    else:
+        raise ValueError('Mode should be "ISS" or "MERFISH"')
+    
     #print(codebook_arr)
     #print(spot_profile)
 

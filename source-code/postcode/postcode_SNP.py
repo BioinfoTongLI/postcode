@@ -35,7 +35,7 @@ def prepare_codebook_MERFISH(codebook_path, N_readouts, gene_name = 'gene', read
 
 
                              
-def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, img_p = 'None', readouts_csv = 'None', mode = 'ISS', start_cycle = 2, keep_noises=True, min_prob = 0.9) -> pd.DataFrame:
+def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, img_p = 'None', readouts_csv = 'None', mode = 'ISS', start_cycle = 2, channels_to_delete = ['DAPI'], keep_noises=True, min_prob = 0.9) -> pd.DataFrame:
     """
     Decodes spots using the Postcode algorithm.
 
@@ -62,7 +62,7 @@ def decode(spot_locations_p: str, spot_profile_p: str, codebook_p: str, img_p = 
         spot_profile, N_readouts = average_spot_profiles(spot_profile_p, readouts_csv)
         gene_list, codebook_arr, K = prepare_codebook_MERFISH(codebook_p, N_readouts)
     elif mode =='ISS':
-        codebook_arr, spot_profile, gene_list, K = prepare_iss(codebook_p, spot_profile_p, image_path = img_p, start_cycle = start_cycle)
+        codebook_arr, spot_profile, gene_list, K = prepare_iss(codebook_p, spot_profile_p, image_path = img_p, start_cycle = start_cycle, channels_to_delete = channels_to_delete)
     else:
         raise ValueError('Mode should be "ISS" or "MERFISH"')
     
